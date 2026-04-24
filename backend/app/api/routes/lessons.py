@@ -3,9 +3,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException
 
 from app.api.deps import get_user_id
+from app.core.config import Settings, get_settings
 from app.db import memory_store
 from app.schemas.lesson import LessonGenerateRequest, LessonOut
-from app.services.mock_lesson import build_mock_lesson
+from app.services.ai_lesson import AiLessonError, generate_lesson_with_ai
 
 router = APIRouter()
 
@@ -25,8 +26,16 @@ def _to_lesson_out(row: memory_store.LessonRecord) -> LessonOut:
 
 
 @router.post("/generate", response_model=LessonOut)
-def generate_lesson(payload: LessonGenerateRequest, user_id: UUID = Depends(get_user_id)) -> LessonOut:
-    lesson = build_mock_lesson(user_id, payload)
+def generate_lesson(
+    payload: LessonGenerateRequest,
+    user_id: UUID = Depends(get_user_id),
+    settings: Settings = Depends(get_settings),
+) -> LessonOut:
+    try:
+        lesson = generate_lesson_with_ai(user_id=user_id, raw_text=payload.raw_text, settings=settings)
+    except AiLessonError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
     memory_store.store.save_lesson(lesson)
     memory_store.store.bump_lessons_created(user_id, lesson.created_at.date())
     return _to_lesson_out(lesson)

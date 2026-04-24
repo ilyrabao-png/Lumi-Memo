@@ -24,7 +24,7 @@ export function LessonActions({ lessonId }: Props) {
       await generateFlashcards(lessonId);
       router.push("/review");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not generate flashcards.");
+      setError(e instanceof Error ? e.message : "Could not generate flashcards and tests.");
     } finally {
       setLoading(false);
     }
@@ -35,11 +35,11 @@ export function LessonActions({ lessonId }: Props) {
       <div>
         <p className="text-sm font-extrabold text-lm-ink">Turn this into memory</p>
         <p className="mt-2 text-sm font-medium leading-relaxed text-lm-inkMuted">
-          Memo will craft five cards from this lesson. If cards already exist for this lesson, we&apos;ll reuse them.
+          Memo will craft AI flashcards and tests from this lesson. If they already exist, we&apos;ll reuse them.
         </p>
       </div>
       <PrimaryButton type="button" onClick={onGenerate} disabled={loading}>
-        {loading ? "Working…" : "Generate flashcards"}
+        {loading ? "Working..." : "Generate flashcards and tests"}
       </PrimaryButton>
       <SecondaryButton type="button" onClick={() => router.push("/review")}>
         Go to review

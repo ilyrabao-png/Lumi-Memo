@@ -24,10 +24,12 @@ export default async function LessonDetailPage({ params }: Props) {
     <main className="space-y-5">
       <ScreenHeader title={lesson.title} subtitle={`Created ${formatDateTime(lesson.created_at)}`} backHref="/" />
 
-      <LmCard padding="lg" className="space-y-2">
-        <h2 className="text-xs font-extrabold uppercase tracking-wide text-lm-inkFaint">Summary</h2>
-        <p className="text-sm font-medium leading-relaxed text-lm-inkMuted">{lesson.summary}</p>
-      </LmCard>
+      {lesson.summary ? (
+        <LmCard padding="lg" className="space-y-2">
+          <h2 className="text-xs font-extrabold uppercase tracking-wide text-lm-inkFaint">Summary</h2>
+          <p className="text-sm font-medium leading-relaxed text-lm-inkMuted">{lesson.summary}</p>
+        </LmCard>
+      ) : null}
 
       <LmCard padding="lg" className="space-y-2">
         <h2 className="text-xs font-extrabold uppercase tracking-wide text-lm-inkFaint">Simple explanation</h2>

@@ -14,7 +14,7 @@ class LessonRecord:
     user_id: UUID
     raw_input_text: str
     title: str
-    summary: str
+    summary: str | None
     simple_explanation: str
     key_points: list[str]
     example: str
@@ -31,6 +31,19 @@ class FlashcardRecord:
     difficulty: str
     review_count: int
     next_review_at: datetime
+    created_at: datetime
+
+
+@dataclass
+class LessonTestRecord:
+    id: UUID
+    user_id: UUID
+    lesson_id: UUID
+    type: str
+    question: str
+    correct_answer: str
+    explanation: str
+    options: list[str] | None
     created_at: datetime
 
 
@@ -57,6 +70,7 @@ class DailyProgressRecord:
 class MemoryStore:
     lessons: dict[UUID, LessonRecord] = field(default_factory=dict)
     flashcards: dict[UUID, FlashcardRecord] = field(default_factory=dict)
+    lesson_tests: dict[UUID, LessonTestRecord] = field(default_factory=dict)
     reviews: list[ReviewRecord] = field(default_factory=list)
     daily_progress: dict[tuple[UUID, date], DailyProgressRecord] = field(default_factory=dict)
     _lock: Lock = field(default_factory=Lock, repr=False)
@@ -87,6 +101,27 @@ class MemoryStore:
     def get_flashcard(self, flashcard_id: UUID) -> FlashcardRecord | None:
         with self._lock:
             return self.flashcards.get(flashcard_id)
+
+    def save_lesson_tests(self, tests: list[LessonTestRecord]) -> None:
+        with self._lock:
+            for test in tests:
+                self.lesson_tests[test.id] = test
+
+    def list_tests_for_lesson(self, user_id: UUID, lesson_id: UUID) -> list[LessonTestRecord]:
+        with self._lock:
+            rows = [t for t in self.lesson_tests.values() if t.user_id == user_id and t.lesson_id == lesson_id]
+            rows.sort(key=lambda t: t.created_at)
+            return rows
+
+    def list_tests_for_lessons(self, user_id: UUID, lesson_ids: set[UUID]) -> list[LessonTestRecord]:
+        with self._lock:
+            rows = [t for t in self.lesson_tests.values() if t.user_id == user_id and t.lesson_id in lesson_ids]
+            rows.sort(key=lambda t: t.created_at)
+            return rows
+
+    def get_lesson_test(self, test_id: UUID) -> LessonTestRecord | None:
+        with self._lock:
+            return self.lesson_tests.get(test_id)
 
     def update_flashcard(self, card: FlashcardRecord) -> None:
         with self._lock:

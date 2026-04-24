@@ -16,7 +16,7 @@ class LessonOut(BaseModel):
     id: UUID
     user_id: UUID
     title: str
-    summary: str
+    summary: str | None = None
     simple_explanation: str
     key_points: list[str] = Field(..., min_length=3, max_length=3)
     example: str

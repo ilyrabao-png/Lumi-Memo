@@ -1,4 +1,4 @@
-import type { Flashcard, Lesson, ProfileSummary, ReviewRating } from "@/types/api";
+import type { Flashcard, Lesson, ProfileSummary, ReviewRating, ReviewSession, TestAnswerResult } from "@/types/api";
 
 import { getApiBaseUrl } from "@/lib/api-base";
 
@@ -21,7 +21,16 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
 
   const text = await res.text();
   if (!res.ok) {
-    throw new Error(text || `${res.status} ${res.statusText}`);
+    let detail: string | null = null;
+    try {
+      const parsed = JSON.parse(text) as { detail?: unknown };
+      if (typeof parsed.detail === "string") {
+        detail = parsed.detail;
+      }
+    } catch {
+      // Fall through to the raw server response below.
+    }
+    throw new Error(detail ?? (text || `${res.status} ${res.statusText}`));
   }
 
   if (!text) {
@@ -77,6 +86,10 @@ export async function getDueToday(): Promise<Flashcard[]> {
   return assertFlashcardArray(data, "/flashcards/due-today");
 }
 
+export async function getReviewSession(): Promise<ReviewSession> {
+  return apiRequest<ReviewSession>("/flashcards/review-session");
+}
+
 export async function reviewFlashcard(
   flashcardId: string,
   rating: ReviewRating,
@@ -88,6 +101,24 @@ export async function reviewFlashcard(
       body: JSON.stringify({ rating }),
     },
   );
+}
+
+export async function learnFlashcard(flashcardId: string): Promise<{ flashcard: Flashcard }> {
+  return reviewFlashcard(flashcardId, "good");
+}
+
+export async function submitTypedAnswer(testId: string, answer: string): Promise<TestAnswerResult> {
+  return apiRequest<TestAnswerResult>(`/flashcards/tests/${encodeURIComponent(testId)}/answer`, {
+    method: "POST",
+    body: JSON.stringify({ answer }),
+  });
+}
+
+export async function submitMultipleChoice(testId: string, selectedOption: string): Promise<TestAnswerResult> {
+  return apiRequest<TestAnswerResult>(`/flashcards/tests/${encodeURIComponent(testId)}/answer`, {
+    method: "POST",
+    body: JSON.stringify({ selected_option: selectedOption }),
+  });
 }
 
 export async function getProfileSummary(): Promise<ProfileSummary> {

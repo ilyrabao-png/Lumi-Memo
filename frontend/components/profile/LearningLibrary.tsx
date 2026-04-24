@@ -24,7 +24,7 @@ export function LearningLibrary({ lessons }: Props) {
     let rows = lessons.slice();
     if (q.trim()) {
       const n = q.toLowerCase();
-      rows = rows.filter((l) => l.title.toLowerCase().includes(n) || l.summary.toLowerCase().includes(n));
+      rows = rows.filter((l) => l.title.toLowerCase().includes(n) || (l.summary ?? "").toLowerCase().includes(n));
     }
     if (cat !== "All") {
       rows = rows.filter((l) => lessonSubject(l) === cat);

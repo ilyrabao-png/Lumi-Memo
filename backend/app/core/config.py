@@ -33,6 +33,11 @@ class Settings(BaseSettings):
     api_port: int = 8000
     # Env: CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,...
     cors_origins: str = _DEFAULT_DEV_ORIGINS
+    openrouter_api_key: str = ""
+    openrouter_model: str = "google/gemma-4-26b-a4b-it"
+    openrouter_site_url: str = ""
+    openrouter_app_title: str = ""
+    openrouter_timeout_seconds: int = 30
 
     @field_validator("cors_origins", mode="before")
     @classmethod
@@ -42,6 +47,18 @@ class Settings(BaseSettings):
         if isinstance(v, list):
             return ",".join(str(x).strip() for x in v if str(x).strip())
         return str(v).strip() if str(v).strip() else _DEFAULT_DEV_ORIGINS
+
+    @field_validator("openrouter_api_key", "openrouter_model", "openrouter_site_url", "openrouter_app_title", mode="before")
+    @classmethod
+    def _strip_openrouter_strings(cls, v: object) -> str:
+        return "" if v is None else str(v).strip()
+
+    @field_validator("openrouter_timeout_seconds")
+    @classmethod
+    def _validate_openrouter_timeout(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("OPENROUTER_TIMEOUT_SECONDS must be greater than 0")
+        return v
 
     @property
     def cors_origins_list(self) -> list[str]:
