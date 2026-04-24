@@ -1,0 +1,13 @@
+/.venv/
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+backend/.venv/
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.env
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+frontend/tsconfig.tsbuildinfo
